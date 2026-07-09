@@ -1,0 +1,128 @@
+<!-- templates/admin_dashboard.html -->
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <div>
+            <h1><i class="fas fa-user-shield"></i> Admin Dashboard</h1>
+            <p>Welcome back, {{ session.user_name }}! Manage your digital library ecosystem.</p>
+        </div>
+        <div class="header-actions">
+            <button id="statsBtn" class="btn-secondary"><i class="fas fa-chart-line"></i> Analytics</button>
+        </div>
+    </div>
+    
+    <div class="stats-cards">
+        <div class="stat-card">
+            <i class="fas fa-users"></i>
+            <div><span>{{ user_count }}</span><p>Total Users</p></div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-book"></i>
+            <div><span>{{ book_count }}</span><p>Total Books</p></div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-download"></i>
+            <div><span>{{ total_downloads }}</span><p>Total Downloads</p></div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-chart-bar"></i>
+            <div><span>{{ categories|length }}</span><p>Categories</p></div>
+        </div>
+    </div>
+    
+    <div class="upload-modal" id="uploadModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2><i class="fas fa-cloud-upload-alt"></i> Upload New Book</h2>
+            <form method="POST" action="{{ url_for('upload_book') }}" enctype="multipart/form-data">
+                <div class="form-group"><label>Book Title *</label><input type="text" name="title" required placeholder="Enter book title"></div>
+                <div class="form-group"><label>Author *</label><input type="text" name="author" required placeholder="Author name"></div>
+                <div class="form-group"><label>Description</label><textarea name="description" rows="3" placeholder="Brief description of the book"></textarea></div>
+                <div class="form-group"><label>Category</label>
+                    <select name="category">
+                        <option>General</option><option>Fiction</option><option>Non-Fiction</option>
+                        <option>Technology</option><option>Programming</option><option>Science</option>
+                        <option>History</option><option>Philosophy</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>File (PDF, DOCX, TXT, EPUB) *</label><input type="file" name="file" required accept=".pdf,.docx,.txt,.epub"></div>
+                <button type="submit" class="btn-primary"><i class="fas fa-upload"></i> Upload Book</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="books-section">
+        <div class="section-header">
+            <h2><i class="fas fa-book"></i> Library Collection</h2>
+            <div class="section-controls">
+                <button id="uploadQuickBtn" class="btn-secondary"><i class="fas fa-plus"></i> Add Book</button>
+            </div>
+        </div>
+        <div class="books-grid">
+            {% for book in books %}
+            <div class="book-card">
+                <div class="book-badge">{{ book[5] }}</div>
+                <div class="book-icon"><i class="fas fa-{{ 'file-pdf' if book[4] == 'pdf' else 'file-alt' }}"></i></div>
+                <h3>{{ book[1] }}</h3>
+                <p class="author"><i class="fas fa-user-edit"></i> {{ book[2] }}</p>
+                <p class="description">{{ book[6][:80] + '...' if book[6] and book[6]|length > 80 else book[6] or 'No description' }}</p>
+                <div class="book-stats">
+                    <span><i class="fas fa-eye"></i> {{ book[10] or 0 }}</span>
+                    <span><i class="fas fa-download"></i> {{ book[9] or 0 }}</span>
+                </div>
+                <div class="book-actions">
+                    <a href="{{ url_for('read_book', book_id=book[0]) }}" class="btn-read"><i class="fas fa-book-open"></i> Read</a>
+                    <a href="{{ url_for('download_file', book_id=book[0]) }}" class="btn-download"><i class="fas fa-download"></i> Download</a>
+                    <a href="{{ url_for('delete_book', book_id=book[0]) }}" class="btn-delete" onclick="return confirm('Delete this book permanently?')"><i class="fas fa-trash"></i></a>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-state"><i class="fas fa-book-open"></i><h3>No Books Yet</h3><p>Start by uploading your first book to the library!</p></div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="stats-modal" id="statsModal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2><i class="fas fa-chart-line"></i> Library Analytics</h2>
+        <div id="statsContent">
+            <div class="loading">Loading statistics...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const uploadModal = document.getElementById('uploadModal');
+    const statsModal = document.getElementById('statsModal');
+    
+    document.getElementById('showUploadBtn')?.addEventListener('click', (e) => { e.preventDefault(); uploadModal.style.display = 'flex'; });
+    document.getElementById('uploadQuickBtn')?.addEventListener('click', () => { uploadModal.style.display = 'flex'; });
+    document.getElementById('statsBtn')?.addEventListener('click', async () => {
+        statsModal.style.display = 'flex';
+        const response = await fetch('{{ url_for("statistics") }}');
+        const data = await response.json();
+        document.getElementById('statsContent').innerHTML = `
+            <div class="stats-grid">
+                <div><strong>Total Users:</strong> ${data.total_users}</div>
+                <div><strong>Total Books:</strong> ${data.total_books}</div>
+                <div><strong>Total Downloads:</strong> ${data.total_downloads}</div>
+                <div><strong>Total Views:</strong> ${data.total_views}</div>
+            </div>
+            <h3>Most Popular Books</h3>
+            <ul class="popular-list">${data.popular_books.map(b => `<li>${b.title} - ${b.downloads} downloads</li>`).join('')}</ul>
+        `;
+    });
+    
+    document.querySelectorAll('.close-modal').forEach(btn => { 
+        btn.onclick = () => { uploadModal.style.display = 'none'; statsModal.style.display = 'none'; };
+    });
+    window.onclick = (e) => { 
+        if (e.target == uploadModal) uploadModal.style.display = 'none'; 
+        if (e.target == statsModal) statsModal.style.display = 'none';
+    };
+</script>
+{% endblock %}

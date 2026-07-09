@@ -1,0 +1,55 @@
+<!-- templates/student_dashboard.html -->
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <div>
+            <h1><i class="fas fa-graduation-cap"></i> Student Dashboard</h1>
+            <p>Welcome, {{ session.user_name }}! Discover, read, and learn from our digital library.</p>
+        </div>
+        <div class="header-actions">
+            {% if recommendations_mode %}
+                <a href="{{ url_for('student_dashboard') }}" class="btn-secondary"><i class="fas fa-arrow-left"></i> Back to Library</a>
+            {% elif show_favorites %}
+                <a href="{{ url_for('student_dashboard') }}" class="btn-secondary"><i class="fas fa-arrow-left"></i> All Books</a>
+            {% else %}
+                <a href="{{ url_for('recommendations') }}" class="btn-secondary"><i class="fas fa-star"></i> For You</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="books-section">
+        <div class="section-header">
+            <h2><i class="fas fa-{% if recommendations_mode %}star{% elif show_favorites %}heart{% else %}book-open{% endif %}"></i> 
+                {% if recommendations_mode %}Recommended for You{% elif show_favorites %}Your Favorites{% else %}All Books{% endif %}
+            </h2>
+        </div>
+        <div class="books-grid">
+            {% for book in books %}
+            <div class="book-card">
+                <div class="book-badge">{{ book[5] }}</div>
+                <div class="book-icon"><i class="fas fa-{{ 'file-pdf' if book[4] == 'pdf' else 'book' }}"></i></div>
+                <h3>{{ book[1] }}</h3>
+                <p class="author"><i class="fas fa-user-edit"></i> {{ book[2] }}</p>
+                <p class="description">{{ book[6][:80] + '...' if book[6] and book[6]|length > 80 else book[6] or 'No description' }}</p>
+                <div class="book-stats"><span><i class="fas fa-eye"></i> {{ book[10] or 0 }}</span><span><i class="fas fa-download"></i> {{ book[9] or 0 }}</span></div>
+                <div class="book-actions">
+                    <a href="{{ url_for('read_book', book_id=book[0]) }}" class="btn-read"><i class="fas fa-book-open"></i> Read Now</a>
+                    <a href="{{ url_for('download_file', book_id=book[0]) }}" class="btn-download"><i class="fas fa-download"></i></a>
+                    <a href="{{ url_for('toggle_favorite', book_id=book[0]) }}" class="btn-favorite {% if book[0] in favorites %}active{% endif %}">
+                        <i class="fas fa-{% if book[0] in favorites %}heart{% else %}heart{% endif %}"></i>
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-{% if recommendations_mode %}star{% elif show_favorites %}heart-broken{% else %}book{% endif %}"></i>
+                <h3>{% if recommendations_mode %}No Recommendations Yet{% elif show_favorites %}No Favorites Yet{% else %}No Books Available{% endif %}</h3>
+                <p>{% if recommendations_mode %}Keep reading to get personalized recommendations!{% elif show_favorites %}Start adding books to your favorites.{% else %}Check back later for new additions.{% endif %}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
