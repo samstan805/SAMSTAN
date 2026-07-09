@@ -1,0 +1,43 @@
+<!-- templates/login.html -->
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <i class="fas fa-university"></i>
+            <h2>Welcome Back</h2>
+            <p>Sign in to access your library portal</p>
+        </div>
+        <form method="POST" action="{{ url_for('login') }}" class="auth-form">
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Email Address</label>
+                <input type="email" name="email" placeholder="Enter your email" required value="{{ recovery_email or '' }}">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Password</label>
+                <input type="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-user-tag"></i> Role</label>
+                <div class="radio-group">
+                    <label class="radio-label"><input type="radio" name="role" value="Admin" required> <span>Admin</span></label>
+                    <label class="radio-label"><input type="radio" name="role" value="Librarian" required> <span>Librarian</span></label>
+                    <label class="radio-label"><input type="radio" name="role" value="Student" required> <span>Student</span></label>
+                </div>
+            </div>
+            <button type="submit" class="btn-primary btn-block">Login <i class="fas fa-arrow-right"></i></button>
+        </form>
+        <div class="auth-footer">
+            <a href="{{ url_for('forgot_password') }}"><i class="fas fa-key"></i> Forgot Password?</a>
+            <a href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Create Account</a>
+        </div>
+        <div class="demo-credentials">
+            <p><strong>Demo Credentials:</strong></p>
+            <p>Admin: admin@elib.com / admin123 (Role: Admin)</p>
+            <p>Librarian: librarian@elib.com / lib123 (Role: Librarian)</p>
+            <p>Student: student@elib.com / student123 (Role: Student)</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

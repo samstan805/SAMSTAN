@@ -1,0 +1,75 @@
+<!-- templates/reader.html -->
+{% extends "base.html" %}
+{% block title %}Reading: {{ book[1] }}{% endblock %}
+{% block content %}
+<div class="reader-container">
+    <div class="reader-header">
+        <div class="reader-info">
+            <h1><i class="fas fa-book-open"></i> {{ book[1] }}</h1>
+            <p>by {{ book[2] }} • {{ book[5] }} • {{ book[7] }}</p>
+        </div>
+        <div class="reader-actions">
+            <a href="{{ url_for('download_file', book_id=book[0]) }}" class="btn-download"><i class="fas fa-download"></i> Download</a>
+            <a href="javascript:history.back()" class="btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+    
+    <div class="reader-content">
+        {% if book[4] == 'pdf' %}
+            <iframe src="{{ file_url }}" class="pdf-viewer" frameborder="0"></iframe>
+        {% elif book[4] == 'txt' %}
+            <div class="text-viewer">
+                <div class="text-controls">
+                    <button onclick="changeFontSize('increase')"><i class="fas fa-search-plus"></i></button>
+                    <button onclick="changeFontSize('decrease')"><i class="fas fa-search-minus"></i></button>
+                    <button onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+                </div>
+                <div class="text-content" id="textContent">
+                    <iframe src="{{ file_url }}" style="width:100%; height:70vh; border:none;"></iframe>
+                </div>
+            </div>
+        {% else %}
+            <div class="unsupported-viewer">
+                <i class="fas fa-file-alt"></i>
+                <h3>Preview not available for this file type</h3>
+                <p>Please download the file to view its contents.</p>
+                <a href="{{ url_for('download_file', book_id=book[0]) }}" class="btn-primary"><i class="fas fa-download"></i> Download File</a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="book-details">
+        <h3>About this book</h3>
+        <p><strong>Description:</strong> {{ book[6] or 'No description provided.' }}</p>
+        <p><strong>Category:</strong> {{ book[5] }}</p>
+        <p><strong>Uploaded:</strong> {{ book[8] }}</p>
+        <p><strong>Views:</strong> {{ book[10] or 0 }} • <strong>Downloads:</strong> {{ book[9] or 0 }}</p>
+    </div>
+</div>
+
+<script>
+    function changeFontSize(action) {
+        const content = document.getElementById('textContent');
+        const currentSize = window.getComputedStyle(content).fontSize;
+        let size = parseFloat(currentSize);
+        if (action === 'increase') size = Math.min(size + 2, 24);
+        else size = Math.max(size - 2, 12);
+        content.style.fontSize = size + 'px';
+    }
+    
+    function toggleTheme() {
+        document.querySelector('.text-viewer').classList.toggle('dark-theme');
+    }
+</script>
+
+<style>
+    .pdf-viewer { width: 100%; height: 80vh; border-radius: 12px; }
+    .text-viewer { background: #fef3c7; padding: 2rem; border-radius: 12px; min-height: 70vh; }
+    .text-viewer.dark-theme { background: #1f2937; color: #f3f4f6; }
+    .text-controls { display: flex; gap: 1rem; margin-bottom: 1rem; justify-content: flex-end; }
+    .text-controls button { background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; }
+    .unsupported-viewer { text-align: center; padding: 4rem; background: white; border-radius: 20px; }
+    .book-details { margin-top: 2rem; padding: 1.5rem; background: white; border-radius: 20px; }
+    @media (max-width: 768px) { .pdf-viewer { height: 60vh; } }
+</style>
+{% endblock %}
